@@ -10,4 +10,6 @@ dist
 .DS_Store
 coverage
 api/generated
-.cursor
+
+# Cursor IDE — never commit
+.cursor/
