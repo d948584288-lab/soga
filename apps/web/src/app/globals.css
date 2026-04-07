@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #0d0d0d;
+  --sidebar: #f9f9f9;
+  --border: #e8e8e8;
+  --muted-foreground: #676767;
+  --surface-elevated: #ffffff;
+  --surface-hover: #f3f3f3;
+  --input-bg: #ffffff;
+  --ring: #10a37f;
+  --primary: #0d0d0d;
+  --primary-hover: #2a2a2a;
+  --primary-foreground: #ffffff;
+}
+
+.dark {
+  --background: #212121;
+  --foreground: #ececec;
+  --sidebar: #171717;
+  --border: #424242;
+  --muted-foreground: #b4b4b4;
+  --surface-elevated: #2f2f2f;
+  --surface-hover: #3a3a3a;
+  --input-bg: #2f2f2f;
+  --ring: #10a37f;
+  --primary: #ececec;
+  --primary-hover: #d9d9d9;
+  --primary-foreground: #0d0d0d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
