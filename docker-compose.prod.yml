@@ -1,6 +1,5 @@
-# Production / test stack for 1Panel: single IP, port 80 → Nginx → web + /api → Nest
-# Usage: copy .env.deploy.example to .env.deploy, edit values, then:
-#   docker compose -f docker-compose.prod.yml --env-file .env.deploy up -d --build
+# Production / test stack for 1Panel: Nginx → web + /api → Nest
+# Defaults: pnpm docker:prod (uses deploy/staging.defaults.env). Override: add a second --env-file.
 
 services:
   postgres:
@@ -32,16 +31,14 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: apps/api/Dockerfile
+      context: ./api
+      dockerfile: Dockerfile
     restart: unless-stopped
+    env_file:
+      - deploy/staging.defaults.env
     environment:
       NODE_ENV: production
-      API_PORT: 4000
-      DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://redis:6379
-      # 测试环境仅 IP 时填 http://你的公网IP  或 http://你的公网IP:端口（若映射了非 80）
-      CORS_ORIGIN: ${CORS_ORIGIN}
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,8 +47,8 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+      context: ./web
+      dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
     restart: unless-stopped

@@ -40,7 +40,7 @@ export default function LoginPage() {
             欢迎回来
           </h1>
           <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-            登录以继续使用 Workspace（当前为前端会话占位，后续接入 API）
+            登录以继续使用 Soga（当前为前端会话占位，后续接入 API）
           </p>
         </div>
 

@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Workspace",
-    template: "%s · Workspace",
+    default: "Soga",
+    template: "%s · Soga",
   },
   description: "企业级 AI 工作台",
 };

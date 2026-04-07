@@ -3,14 +3,16 @@
   "private": true,
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
   "scripts": {
-    "dev": "pnpm -r --parallel --filter \"./apps/*\" dev",
-    "dev:web": "pnpm --filter web dev",
-    "dev:api": "pnpm --filter api start:dev",
-    "build": "pnpm run -r --filter web --filter api build",
+    "setup:env": "node scripts/sync-local-env.cjs --force",
+    "dev:web": "pnpm --dir web dev",
+    "dev:api": "pnpm --dir api dev",
+    "build:web": "pnpm --dir web build",
+    "build:api": "pnpm --dir api build",
+    "build": "pnpm run build:web && pnpm run build:api",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
-    "docker:prod": "docker compose -f docker-compose.prod.yml --env-file .env.deploy up -d --build",
-    "docker:prod:down": "docker compose -f docker-compose.prod.yml --env-file .env.deploy down"
+    "docker:prod": "docker compose -f docker-compose.prod.yml --env-file deploy/staging.defaults.env up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml --env-file deploy/staging.defaults.env down"
   }
 }

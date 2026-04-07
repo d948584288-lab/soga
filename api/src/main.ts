@@ -17,16 +17,24 @@ async function bootstrap() {
     }),
   );
 
-  const corsRaw = process.env.CORS_ORIGIN ?? 'http://localhost:3000';
-  let corsOrigins = corsRaw.split(',').map((o) => o.trim()).filter(Boolean);
-  if (corsOrigins.length === 0) {
-    corsOrigins = ['http://localhost:3000'];
+  const corsReflect =
+    process.env.CORS_REFLECT === '1' ||
+    process.env.CORS_REFLECT === 'true';
+
+  if (corsReflect) {
+    app.enableCors({ origin: true, credentials: true });
+  } else {
+    const corsRaw = process.env.CORS_ORIGIN ?? 'http://localhost:3000';
+    let corsOrigins = corsRaw.split(',').map((o) => o.trim()).filter(Boolean);
+    if (corsOrigins.length === 0) {
+      corsOrigins = ['http://localhost:3000'];
+    }
+    const allowAny = corsOrigins.length === 1 && corsOrigins[0] === '*';
+    app.enableCors({
+      origin: allowAny ? true : corsOrigins,
+      credentials: !allowAny,
+    });
   }
-  const allowAny = corsOrigins.length === 1 && corsOrigins[0] === '*';
-  app.enableCors({
-    origin: allowAny ? true : corsOrigins,
-    credentials: !allowAny,
-  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('AI Platform API')

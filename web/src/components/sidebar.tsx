@@ -42,7 +42,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold tracking-tight text-[var(--foreground)]">
-                Workspace
+                Soga
               </p>
               <p className="truncate text-xs text-[var(--muted-foreground)]">
                 企业助手
