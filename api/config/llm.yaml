@@ -1,0 +1,91 @@
+# LLM 模型配置
+# 支持多提供商、多模型，可按优先级自动 fallback
+
+providers:
+  - name: moonshot
+    displayName: 月之暗面
+    baseUrl: https://api.moonshot.cn/v1
+    apiKey: ${MOONSHOT_API_KEY}
+    priority: 1
+    enabled: true
+    models:
+      - id: moonshot-v1-8k
+        name: Kimi 8K
+        maxTokens: 8192
+        contextWindow: 8192
+        inputPrice: 0.000012  # $/token
+        outputPrice: 0.000012
+        default: false
+        enabled: true
+        
+      - id: moonshot-v1-32k
+        name: Kimi 32K
+        maxTokens: 32000
+        contextWindow: 32000
+        inputPrice: 0.000024
+        outputPrice: 0.000024
+        default: true  # 默认模型
+        enabled: true
+        
+      - id: moonshot-v1-128k
+        name: Kimi 128K
+        maxTokens: 128000
+        contextWindow: 128000
+        inputPrice: 0.00006
+        outputPrice: 0.00006
+        default: false
+        enabled: true
+
+  # 预留：OpenAI
+  - name: openai
+    displayName: OpenAI
+    baseUrl: https://api.openai.com/v1
+    apiKey: ${OPENAI_API_KEY}
+    priority: 2
+    enabled: false
+    models:
+      - id: gpt-4o
+        name: GPT-4o
+        maxTokens: 4096
+        contextWindow: 128000
+        inputPrice: 0.000005
+        outputPrice: 0.000015
+        default: false
+        enabled: false
+
+  # 预留：本地模型（Ollama）
+  - name: ollama
+    displayName: Ollama 本地
+    baseUrl: http://localhost:11434/v1
+    apiKey: "ollama"  # Ollama 不需要 API Key，但接口要求
+    priority: 3
+    enabled: false
+    models:
+      - id: llama3
+        name: Llama 3
+        maxTokens: 4096
+        contextWindow: 8192
+        inputPrice: 0
+        outputPrice: 0
+        default: false
+        enabled: false
+
+# 全局默认配置
+defaults:
+  temperature: 0.7
+  topP: 1.0
+  maxTokens: 4096
+  presencePenalty: 0
+  frequencyPenalty: 0
+
+# 流式输出配置
+streaming:
+  enabled: true
+  chunkSize: 16  # 每次推送的字符数
+  maxConcurrent: 100  # 最大并发流数
+
+# 成本控制
+costControl:
+  enabled: true
+  maxMonthlyBudget: 100  # $/月
+  alertThreshold: 0.8  # 达到 80% 发送告警

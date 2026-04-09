@@ -29,6 +29,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client;
   }
 
+  /**
+   * 获取 Redis 客户端（兼容方法）
+   */
+  getClient(): Redis {
+    return this.client;
+  }
+
   async ping(): Promise<boolean> {
     try {
       const reply = await this.client.ping();

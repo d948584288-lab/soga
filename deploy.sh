@@ -1,6 +1,6 @@
 #!/bin/bash
 # 宝塔服务器一键部署脚本
-# 用法: chmod +x deploy.sh && ./deploy.sh
+# 用于部署 AI Platform（NestJS + Next.js + PostgreSQL + Redis）
 
 set -e  # 遇到错误立即退出
 
@@ -18,20 +18,48 @@ if [ ! -f ".env.deploy" ]; then
     echo -e "${RED}❌ 错误: .env.deploy 文件不存在${NC}"
     echo ""
     echo -e "${YELLOW}请创建 .env.deploy 文件：${NC}"
-    echo ""
     cat << 'EXAMPLE'
-# 生产环境配置 - 务必修改密码
-POSTGRES_PASSWORD=your_strong_password_here
-DATABASE_URL=postgresql://app:your_strong_password_here@postgres:5432/app
+# =====================================
+# 生产环境配置 - 务必修改密码和 API Key
+# =====================================
 
-# 端口配置（宝塔可能需要避免80端口冲突）
+# 数据库配置
+POSTGRES_PASSWORD=YourStrongPassword123!
+
+# JWT 密钥（至少32位随机字符串）
+JWT_SECRET=your-random-jwt-secret-key-min-32-chars
+JWT_REFRESH_SECRET=your-random-jwt-refresh-secret-key
+
+# Kimi API Key（必填）
+MOONSHOT_API_KEY=sk-your-moonshot-api-key
+
+# 端口（宝塔可能需要避免80端口冲突）
 HTTP_PORT=8080
+
+# Worker 数量（根据服务器配置调整）
+WORKER_REPLICAS=1
 
 # 如果你有域名，修改 CORS 配置
 # CORS_REFLECT=0
 # CORS_ORIGIN=https://your-domain.com
 EXAMPLE
     echo ""
+    exit 1
+fi
+
+# 检查关键配置
+if ! grep -q "MOONSHOT_API_KEY" .env.deploy || grep -q "MOONSHOT_API_KEY=sk-your" .env.deploy; then
+    echo -e "${RED}❌ 错误: 请配置 MOONSHOT_API_KEY${NC}"
+    exit 1
+fi
+
+if ! grep -q "JWT_SECRET" .env.deploy || grep -q "JWT_SECRET=change-this" .env.deploy; then
+    echo -e "${RED}❌ 错误: 请配置 JWT_SECRET${NC}"
+    exit 1
+fi
+
+if ! grep -q "POSTGRES_PASSWORD" .env.deploy || grep -q "POSTGRES_PASSWORD=staging_app_change_me" .env.deploy; then
+    echo -e "${RED}❌ 错误: 请修改默认的 POSTGRES_PASSWORD${NC}"
     exit 1
 fi
 
@@ -72,7 +100,14 @@ docker compose -f docker-compose.prod.yml \
 
 # 等待服务启动
 echo -e "${BLUE}⏳ 等待服务启动...${NC}"
-sleep 10
+sleep 15
+
+# 执行数据库迁移
+echo -e "${BLUE}🔄 执行数据库迁移...${NC}"
+docker compose -f docker-compose.prod.yml \
+  --env-file deploy/staging.defaults.env \
+  --env-file .env.deploy \
+  exec -T api npx prisma migrate deploy || true
 
 # 检查服务状态
 echo -e "${BLUE}🔍 检查服务状态...${NC}"
@@ -93,9 +128,9 @@ for i in {1..5}; do
         echo -e "${GREEN}✅ 部署成功！${NC}"
         echo ""
         echo -e "${GREEN}🌐 服务访问地址:${NC}"
-        echo "   - 首页: http://your-server-ip:${HTTP_PORT}"
-        echo "   - API文档: http://your-server-ip:${HTTP_PORT}/docs"
-        echo "   - 健康检查: http://your-server-ip:${HTTP_PORT}/api/health"
+        echo "   - 首页: http://47.115.77.202:${HTTP_PORT}"
+        echo "   - API文档: http://47.115.77.202:${HTTP_PORT}/docs"
+        echo "   - 健康检查: http://47.115.77.202:${HTTP_PORT}/api/health"
         echo ""
         break
     else
@@ -112,6 +147,7 @@ done
 echo -e "${BLUE}📋 常用命令:${NC}"
 echo "  查看日志:   docker compose -f docker-compose.prod.yml logs -f"
 echo "  API日志:   docker compose -f docker-compose.prod.yml logs -f api"
+echo "  Worker日志: docker compose -f docker-compose.prod.yml logs -f worker"
 echo "  停止服务:   docker compose -f docker-compose.prod.yml down"
 echo "  重启服务:   docker compose -f docker-compose.prod.yml restart"
 echo "  进入数据库: docker compose -f docker-compose.prod.yml exec postgres psql -U app -d app"

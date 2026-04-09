@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     template: "%s · Soga",
   },
   description: "企业级 AI 工作台",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

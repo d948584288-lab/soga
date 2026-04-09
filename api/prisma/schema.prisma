@@ -7,14 +7,215 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Application user; auth flows will sync with this table in a later iteration.
-model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  displayName  String?   @map("display_name")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+// ==================== 枚举类型 ====================
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum SessionStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum ContentType {
+  TEXT
+  IMAGE
+  FILE
+  THINKING
+}
+
+enum PromptType {
+  SYSTEM
+  CUSTOM
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ==================== 用户表 ====================
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  passwordHash  String      @map("password_hash")
+  displayName   String?     @map("display_name")
+  role          UserRole    @default(USER)
+  status        UserStatus  @default(ACTIVE)
+  lastLoginAt   DateTime?   @map("last_login_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // 关联
+  sessions      Session[]
+  prompts       Prompt[]
+  documents     Document[]
+  costs         Cost[]
+  dailyStats    UserDailyStat[]
+
+  @@index([email])
+  @@index([status])
   @@map("users")
+}
+
+// ==================== 会话表 ====================
+
+model Session {
+  id            String          @id @default(cuid())
+  userId        String          @map("user_id")
+  title         String?         // 自动生成或用户自定义
+  model         String          @default("moonshot-v1-32k") // 使用的模型
+  promptId      String?         @map("prompt_id") // 关联的系统提示词
+  status        SessionStatus   @default(ACTIVE)
+  messageCount  Int             @default(0) @map("message_count")
+  totalTokens   Int             @default(0) @map("total_tokens")
+  metadata      Json?           // 额外配置
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  // 关联
+  user          User            @relation(fields: [userId], references: [id])
+  messages      Message[]
+  prompt        Prompt?         @relation(fields: [promptId], references: [id])
+  costs         Cost[]
+
+  @@index([userId, updatedAt])
+  @@index([status])
+  @@map("sessions")
+}
+
+// ==================== 消息表 ====================
+
+model Message {
+  id            String        @id @default(cuid())
+  sessionId     String        @map("session_id")
+  role          MessageRole
+  content       String        @db.Text
+  contentType   ContentType   @default(TEXT) @map("content_type")
+  tokens        Int?          // 消耗的 token 数
+  model         String?       // 生成此消息的模型
+  latencyMs     Int?          @map("latency_ms") // 响应延迟
+  metadata      Json?         // 包含引用来源、思考过程等
+  parentId      String?       @map("parent_id") // 支持分支对话
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // 关联
+  session       Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([role])
+  @@map("messages")
+}
+
+// ==================== Prompt 模板表 ====================
+
+model Prompt {
+  id            String      @id @default(cuid())
+  userId        String?     @map("user_id") // null 表示系统预设
+  name          String
+  description   String?
+  type          PromptType  @default(CUSTOM)
+  systemPrompt  String      @map("system_prompt") @db.Text
+  temperature   Float       @default(0.7)
+  maxTokens     Int         @default(4096) @map("max_tokens")
+  topP          Float       @default(1) @map("top_p")
+  isDefault     Boolean     @default(false) @map("is_default")
+  isPublic      Boolean     @default(false) @map("is_public")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // 关联
+  user          User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions      Session[]
+
+  @@index([userId])
+  @@index([type])
+  @@map("prompts")
+}
+
+// ==================== 文档/知识库表（预留）====================
+
+model Document {
+  id            String          @id @default(cuid())
+  userId        String          @map("user_id")
+  title         String
+  description   String?
+  fileName      String          @map("file_name")
+  fileType      String          @map("file_type") // pdf / docx / txt / md
+  fileSize      Int             @map("file_size")
+  filePath      String          @map("file_path") // 本地存储路径
+  status        DocumentStatus  @default(PENDING)
+  chunkCount    Int             @default(0) @map("chunk_count")
+  tokenCount    Int             @default(0) @map("token_count")
+  metadata      Json?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  // 关联
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("documents")
+}
+
+// ==================== 成本统计表 ====================
+
+model Cost {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  sessionId     String?   @map("session_id")
+  model         String    // 使用的模型
+  inputTokens   Int       @map("input_tokens")
+  outputTokens  Int       @map("output_tokens")
+  inputCost     Float     @map("input_cost") // 输入费用（美元）
+  outputCost    Float     @map("output_cost") // 输出费用
+  totalCost     Float     @map("total_cost")
+  latencyMs     Int       @map("latency_ms")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  // 关联
+  user          User      @relation(fields: [userId], references: [id])
+  session       Session?  @relation(fields: [sessionId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([model])
+  @@map("costs")
+}
+
+// ==================== 用户每日统计表（限流用）====================
+
+model UserDailyStat {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  date            DateTime  @db.Date
+  requestCount    Int       @default(0) @map("request_count")
+  tokenCount      Int       @default(0) @map("token_count")
+  costTotal       Float     @default(0) @map("cost_total")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // 关联
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("user_daily_stats")
 }

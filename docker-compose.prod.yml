@@ -1,9 +1,10 @@
-# Production / test stack for 1Panel: Nginx → web + /api → Nest
-# Defaults: pnpm docker:prod (uses deploy/staging.defaults.env). Override: add a second --env-file.
+# Production stack for AI Platform
+# Supports: PostgreSQL + pgvector, Redis, NestJS API, Next.js Web, Worker
 
 services:
   postgres:
-    image: docker.1panel.live/postgres:16-alpine
+    # 使用支持 pgvector 的 PostgreSQL 镜像
+    image: docker.1panel.live/ankane/pgvector:latest
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-app}
@@ -39,6 +40,10 @@ services:
     environment:
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,6 +55,28 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - deploy/staging.defaults.env
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    deploy:
+      replicas: ${WORKER_REPLICAS:-1}
 
   web:
     build:
