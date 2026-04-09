@@ -1,5 +1,5 @@
 # Build from repo root: docker compose build api  (context ./api)
-FROM node:22-alpine AS builder
+FROM docker.1panel.live/node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.12.4 --activate
 
 WORKDIR /app
@@ -14,7 +14,7 @@ ENV DATABASE_URL="postgresql://app:app@localhost:5432/app"
 RUN pnpm exec prisma generate && pnpm run build
 RUN pnpm prune --prod --ignore-scripts
 
-FROM node:22-alpine AS runner
+FROM docker.1panel.live/node:22-alpine AS runner
 RUN apk add --no-cache openssl libc6-compat \
   && npm install -g prisma@6.19.0
 

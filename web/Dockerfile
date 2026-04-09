@@ -1,5 +1,5 @@
 # Build from repo root: docker compose build web  (context ./web)
-FROM node:22-alpine AS builder
+FROM docker.1panel.live/node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.12.4 --activate
 
 WORKDIR /app
@@ -14,7 +14,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm run build
 
-FROM node:22-alpine AS runner
+FROM docker.1panel.live/node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
