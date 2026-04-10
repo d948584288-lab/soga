@@ -28,7 +28,10 @@ export interface Message {
   tokens?: number;
   model?: string;
   latencyMs?: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
+  sessionId: string;
+  userId: string;
+  updatedAt?: string;
   createdAt: string;
 }
 

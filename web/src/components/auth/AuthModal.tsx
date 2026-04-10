@@ -1,85 +1,54 @@
-/**
- * 认证弹窗容器
- * 整合登录、注册、找回密码表单
- */
+"use client"
 
-'use client';
+import * as React from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog"
+import { LoginForm } from "./LoginForm"
+import { RegisterForm } from "./RegisterForm"
+import { ForgotPasswordForm } from "./ForgotPasswordForm"
 
-import { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
-import { LoginForm } from './LoginForm';
-import { RegisterForm } from './RegisterForm';
-import { ForgotPasswordForm } from './ForgotPasswordForm';
-
-type AuthView = 'login' | 'register' | 'forgot';
+type AuthView = "login" | "register" | "forgot"
 
 interface AuthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  defaultView?: AuthView;
-  onSuccess?: () => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  defaultView?: AuthView
 }
 
-export function AuthModal({
-  isOpen,
-  onClose,
-  defaultView = 'login',
-  onSuccess,
-}: AuthModalProps) {
-  const [currentView, setCurrentView] = useState<AuthView>(defaultView);
+export function AuthModal({ open, onOpenChange, defaultView = "login" }: AuthModalProps) {
+  const [view, setView] = React.useState<AuthView>(defaultView)
 
-  // 切换视图时重置状态
-  const handleViewChange = (view: AuthView) => {
-    setCurrentView(view);
-  };
-
-  // 成功回调
-  const handleSuccess = () => {
-    onSuccess?.();
-    onClose();
-  };
-
-  // 获取标题
-  const getTitle = () => {
-    switch (currentView) {
-      case 'login':
-        return '欢迎回来';
-      case 'register':
-        return '创建账号';
-      case 'forgot':
-        return '找回密码';
-      default:
-        return '';
-    }
-  };
+  const titles = {
+    login: "登录",
+    register: "注册账号",
+    forgot: "找回密码",
+  }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={getTitle()}
-      size="md"
-    >
-      {currentView === 'login' && (
-        <LoginForm
-          onSuccess={handleSuccess}
-          onRegisterClick={() => handleViewChange('register')}
-          onForgotPasswordClick={() => handleViewChange('forgot')}
-        />
-      )}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center text-xl">{titles[view]}</DialogTitle>
+        </DialogHeader>
 
-      {currentView === 'register' && (
-        <RegisterForm
-          onSuccess={handleSuccess}
-          onLoginClick={() => handleViewChange('login')}
-        />
-      )}
-
-      {currentView === 'forgot' && (
-        <ForgotPasswordForm
-          onBackToLogin={() => handleViewChange('login')}
-        />
-      )}
-    </Modal>
-  );
+        <div className="mt-4">
+          {view === "login" && (
+            <LoginForm
+              onSuccess={() => onOpenChange(false)}
+              onRegister={() => setView("register")}
+              onForgot={() => setView("forgot")}
+            />
+          )}
+          {view === "register" && (
+            <RegisterForm
+              onSuccess={() => onOpenChange(false)}
+              onLogin={() => setView("login")}
+            />
+          )}
+          {view === "forgot" && (
+            <ForgotPasswordForm onBack={() => setView("login")} />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }

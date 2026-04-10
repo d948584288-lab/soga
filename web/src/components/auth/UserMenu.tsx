@@ -123,14 +123,14 @@ export function UserMenu() {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              isFullWidth
+              className="flex-1"
               onClick={() => setShowLogoutConfirm(false)}
             >
               取消
             </Button>
             <Button
-              variant="danger"
-              isFullWidth
+              variant="destructive"
+              className="flex-1"
               onClick={handleLogout}
             >
               退出登录

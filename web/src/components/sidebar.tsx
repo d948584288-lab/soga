@@ -12,8 +12,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/Utils";
+import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const PLACEHOLDER_CHATS = [

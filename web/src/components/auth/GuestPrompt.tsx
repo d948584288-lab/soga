@@ -55,7 +55,7 @@ export function GuestPrompt({
 
         <div className="space-y-2 pt-2">
           <Button
-            isFullWidth
+            className="w-full"
             onClick={() => {
               onClose();
               onLogin();
@@ -65,7 +65,7 @@ export function GuestPrompt({
           </Button>
           <Button
             variant="outline"
-            isFullWidth
+            className="w-full"
             onClick={() => {
               onClose();
               onRegister();
@@ -75,7 +75,7 @@ export function GuestPrompt({
           </Button>
           <Button
             variant="ghost"
-            isFullWidth
+            className="w-full"
             onClick={onClose}
           >
             暂不登录

@@ -1,104 +1,74 @@
-/**
- * 找回密码表单组件
- * 当前阶段：预留UI，提示功能开发中
- */
+"use client"
 
-'use client';
-
-import { useState } from 'react';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import * as React from "react"
+import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
 
 interface ForgotPasswordFormProps {
-  onBackToLogin?: () => void;
+  onBack: () => void
 }
 
-export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
-  const [email, setEmail] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
+  const [email, setEmail] = React.useState("")
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [sent, setSent] = React.useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // 模拟提交，实际功能开发中
-    setIsSubmitted(true);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    // 预留功能
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    setIsLoading(false)
+    setSent(true)
+  }
 
-  // 提交成功后的提示状态
-  if (isSubmitted) {
+  if (sent) {
     return (
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      <div className="text-center space-y-4 py-4">
+        <div className="w-12 h-12 mx-auto bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            功能开发中
-          </h3>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            密码重置功能即将上线，请耐心等待。<br />
-            如有紧急情况，请联系管理员。
+          <h3 className="font-medium">功能开发中</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            密码重置功能即将上线
           </p>
         </div>
-
-        <Button
-          variant="outline"
-          isFullWidth
-          onClick={onBackToLogin}
-        >
+        <Button variant="outline" onClick={onBack} className="w-full">
           返回登录
         </Button>
       </div>
-    );
+    )
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* 提示信息 */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <div className="flex items-start gap-3">
-          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div className="text-sm text-blue-800 dark:text-blue-300">
-            <p className="font-medium">功能开发中</p>
-            <p className="mt-1">密码重置功能即将上线，敬请期待。</p>
-          </div>
-        </div>
+      <div className="p-3 text-sm text-blue-600 bg-blue-50 dark:bg-blue-950/50 rounded-md">
+        请输入您的邮箱，我们将向您发送密码重置链接（功能开发中）
       </div>
 
-      {/* 邮箱输入（预留） */}
-      <Input
-        id="forgot-email"
-        name="email"
-        type="email"
-        label="邮箱地址"
-        placeholder="you@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        disabled
-      />
+      <div className="space-y-2">
+        <Label htmlFor="forgot-email">邮箱</Label>
+        <Input
+          id="forgot-email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
 
-      {/* 发送按钮（禁用） */}
-      <Button
-        type="submit"
-        isFullWidth
-        disabled
-        size="lg"
-      >
-        发送重置链接
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "发送中..." : "发送重置链接"}
       </Button>
 
-      {/* 返回登录 */}
-      <button
-        type="button"
-        onClick={onBackToLogin}
-        className="w-full text-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-      >
+      <Button type="button" variant="ghost" onClick={onBack} className="w-full">
         ← 返回登录
-      </button>
+      </Button>
     </form>
-  );
+  )
 }
