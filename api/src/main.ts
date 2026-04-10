@@ -7,8 +7,8 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
-  // API 前缀
-  app.setGlobalPrefix('api');
+  // API 前缀 - v1 版本
+  app.setGlobalPrefix('v1/api');
 
   // CORS 配置
   const corsReflect =

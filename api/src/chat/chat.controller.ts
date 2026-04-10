@@ -44,9 +44,20 @@ export class ChatController {
    */
   @Get('sessions')
   @ApiOperation({ summary: '获取会话列表' })
-  async getSessions(@CurrentUser() user: CurrentUserType): Promise<{ data: SessionResponseDto[] }> {
-    const sessions = await this.chatService.getSessions(user.userId);
-    return { data: sessions as SessionResponseDto[] };
+  async getSessions(
+    @CurrentUser() user: CurrentUserType,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<{ items: SessionResponseDto[]; total: number; page: number; limit: number }> {
+    const pageNum = parseInt(page || '1', 10);
+    const limitNum = parseInt(limit || '20', 10);
+    const result = await this.chatService.getSessions(user.userId, pageNum, limitNum);
+    return { 
+      items: result.items as SessionResponseDto[],
+      total: result.total,
+      page: pageNum,
+      limit: limitNum,
+    };
   }
 
   /**
@@ -126,7 +137,7 @@ export class ChatController {
    * 发送消息（流式 SSE）
    * 核心接口，支持打字机效果
    */
-  @Sse('sessions/:id/stream')
+  @Post('sessions/:id/stream')
   @Header('Content-Type', 'text/event-stream')
   @Header('Cache-Control', 'no-cache')
   @Header('Connection', 'keep-alive')

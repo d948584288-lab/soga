@@ -23,26 +23,40 @@ export class ChatService {
   // ==================== 会话管理 ====================
 
   /**
-   * 获取用户的会话列表
+   * 获取用户的会话列表（支持分页）
    */
-  async getSessions(userId: string) {
-    return this.prisma.session.findMany({
-      where: {
-        userId,
-        status: 'ACTIVE',
-      },
-      orderBy: { updatedAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        model: true,
-        status: true,
-        messageCount: true,
-        totalTokens: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+  async getSessions(userId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    
+    const [items, total] = await Promise.all([
+      this.prisma.session.findMany({
+        where: {
+          userId,
+          status: 'ACTIVE',
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          model: true,
+          status: true,
+          messageCount: true,
+          totalTokens: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.session.count({
+        where: {
+          userId,
+          status: 'ACTIVE',
+        },
+      }),
+    ]);
+    
+    return { items, total, page, limit };
   }
 
   /**
